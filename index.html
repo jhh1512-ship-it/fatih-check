@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>신앙관리 점검</title>
+<!-- 텔레그램 미니앱 기능을 쓰게 해 주는 공식 도구 -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: linear-gradient(180deg, #dfe4f7 0, #eef0f7 320px, #f1f2f6 100%);
+    color: #1d1d1f;
+    min-height: 100vh;
+  }
+  header { text-align: center; padding: 28px 16px 8px; }
+  header h1 { margin: 0; font-size: 38px; color: #fff; text-shadow: 0 2px 10px rgba(40,60,160,.25); }
+  header p  { margin: 6px 0 0; color: #fff; font-size: 14px; text-shadow: 0 1px 6px rgba(40,60,160,.3); }
+
+  .stepper { display: flex; justify-content: space-between; max-width: 340px; margin: 22px auto 6px; position: relative; }
+  .stepper::before { content: ""; position: absolute; top: 19px; left: 40px; right: 40px; height: 2px; background: #d5d9ea; }
+  .step { position: relative; text-align: center; width: 80px; }
+  .dot { width: 38px; height: 38px; margin: 0 auto; border-radius: 50%; background: #fff; border: 1px solid #d5d9ea;
+         display: flex; align-items: center; justify-content: center; font-weight: 700; color: #9a9fb3; }
+  .step span { display: block; margin-top: 6px; font-size: 13px; color: #8a8fa3; }
+  .step.on .dot, .step.done .dot { background: #2236d1; border-color: #2236d1; color: #fff; }
+  .step.on span, .step.done span { color: #2236d1; font-weight: 700; }
+
+  .card { background: #fff; margin: 14px 12px 24px; border-radius: 22px; padding: 22px 18px 18px;
+          box-shadow: 0 4px 18px rgba(30,40,90,.06); }
+  .title { text-align: center; color: #2236d1; font-size: 19px; font-weight: 800; margin: 0 0 18px; }
+  .sub   { text-align: center; color: #8a8fa3; font-size: 14px; margin: -10px 0 18px; }
+
+  label.field { display: block; font-weight: 700; font-size: 14px; margin: 16px 0 8px; }
+  .req { color: #e5363a; margin-left: 2px; }
+  input[type=text], select {
+    width: 100%; padding: 14px; font-size: 16px; border: 1px solid #dcdfe8; border-radius: 12px; background: #fff;
+    -webkit-appearance: none; appearance: none; color: #1d1d1f;
+  }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");
+           background-repeat: no-repeat; background-position: right 14px center; }
+  select:disabled { background-color: #f3f4f8; background-image: none; color: #444; opacity: 1; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .section-head { margin: 22px 0 4px; padding-top: 16px; border-top: 1px dashed #e3e5ee; font-size: 16px; font-weight: 800; }
+  .section-head:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+  .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .chip { padding: 14px 8px; border: 1px solid #dcdfe8; border-radius: 12px; background: #fff; font-size: 15px;
+          color: #6b6f80; text-align: center; cursor: pointer; user-select: none; }
+  .chip.sel { background: #6b8c4a; border-color: #6b8c4a; color: #fff; font-weight: 700; }
+  .etc { margin-top: 8px; padding: 10px; background: #f6f7fb; border-radius: 12px; }
+  .etc small { display: block; color: #8a8fa3; margin: 0 0 6px 2px; }
+
+  .notice { border: 1px solid #e3e5ee; border-radius: 16px; padding: 14px 16px; }
+  .notice li { margin: 10px 0; line-height: 1.5; }
+  .warn { color: #d9730d; text-align: center; font-weight: 700; margin: -6px 0 16px; }
+  .alert { background: #fcecee; color: #c42b32; border-radius: 14px; padding: 14px; margin-top: 14px; font-size: 14px; }
+
+  table.sum { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .sum th { text-align: left; color: #8a8fa3; font-weight: 500; padding: 9px 4px; width: 38%; border-bottom: 1px solid #f0f1f5; }
+  .sum td { padding: 9px 4px; font-weight: 600; border-bottom: 1px solid #f0f1f5; }
+  .check { display: flex; gap: 12px; align-items: flex-start; border: 1px solid #e3e5ee; border-radius: 14px;
+           padding: 14px; margin-top: 10px; line-height: 1.45; cursor: pointer; }
+  .check input { width: 22px; height: 22px; margin: 1px 0 0; flex: none; }
+
+  .error { color: #e5363a; font-size: 13px; min-height: 18px; margin-top: 12px; text-align: center; }
+  .nav { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-top: 8px; }
+  button { font-size: 17px; font-weight: 700; padding: 16px; border-radius: 14px; cursor: pointer; font-family: inherit; }
+  .btn-prev { background: #fff; border: 1px solid #dcdfe8; color: #333; }
+  .btn-next { background: #6b8c4a; border: 0; color: #fff; }
+  .btn-next:disabled { background: #b6c4a6; cursor: default; }
+  .btn-full { width: 100%; margin-top: 18px; }
+  .foot { text-align: center; color: #8a8fa3; font-size: 12px; margin-top: 12px; }
+  pre { background: #f6f7fb; padding: 12px; border-radius: 12px; font-size: 12px; white-space: pre-wrap; text-align: left; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>신앙관리</h1>
+  <p>신앙관리봇 점검양식</p>
+  <div class="stepper" id="stepper" hidden>
+    <div class="step" data-n="1"><div class="dot">1</div><span>인적사항</span></div>
+    <div class="step" data-n="2"><div class="dot">2</div><span>점검사항</span></div>
+    <div class="step" data-n="3"><div class="dot">3</div><span>최종확인</span></div>
+  </div>
+</header>
+
+<main class="card">
+
+  <!-- 0. 시작 화면 -->
+  <section data-page="0">
+    <div style="text-align:center;font-size:30px">🌿</div>
+    <h2 style="text-align:center;margin:6px 0 14px">신앙관리 점검 안내</h2>
+    <p class="warn">⚠️ 작성 전 꼭 읽어주세요!</p>
+    <ol class="notice">
+      <li>한 주의 점검은 주일예배 후에 작성해주세요.</li>
+      <li>입력한 개인 정보는 담당자만 확인합니다.</li>
+      <li>한 사람당 보고 1건으로 작성해주세요.</li>
+      <li>제출 후에는 수정이 불가하니 신중하게 작성해주세요.</li>
+    </ol>
+    <button class="btn-next btn-full" onclick="go(1)">시작하기</button>
+  </section>
+
+  <!-- 1. 인적사항 -->
+  <section data-page="1" hidden>
+    <h3 class="title">🌿 인적사항 🌿</h3>
+    <label class="field">이름<span class="req">*</span></label>
+    <input type="text" id="name" placeholder="이름 입력" maxlength="20">
+    <div class="row">
+      <div>
+        <label class="field">지역<span class="req">*</span></label>
+        <select id="region"></select>
+      </div>
+      <div>
+        <label class="field">구역<span class="req">*</span></label>
+        <select id="zone"></select>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 점검사항 -->
+  <section data-page="2" hidden>
+    <h3 class="title">🌿 점검사항 🌿</h3>
+    <div id="checks"></div>
+  </section>
+
+  <!-- 3. 최종확인 -->
+  <section data-page="3" hidden>
+    <h3 class="title" style="color:#1d1d1f">최종 점검</h3>
+    <p class="sub">제출 전, 한 번 더 확인해 주세요!</p>
+    <table class="sum" id="summary"></table>
+    <label class="check"><input type="checkbox" id="ok1" onchange="refreshSubmit()">
+      <span>입력한 내용에 오타나 잘못된 정보가 없음을 확인했습니다.</span></label>
+    <label class="check"><input type="checkbox" id="ok2" onchange="refreshSubmit()">
+      <span>제출 후에는 수정할 수 없다는 것을 확인했습니다.</span></label>
+    <div class="alert">⚠️ 제출 후에는 수정이 불가하니 신중하게 확인해 주세요.</div>
+  </section>
+
+  <!-- 4. 완료 화면 (텔레그램 밖에서 미리보기할 때만 보여요) -->
+  <section data-page="4" hidden>
+    <div style="text-align:center;font-size:40px">✅</div>
+    <h2 style="text-align:center">제출 완료!</h2>
+    <p class="sub" id="doneMsg" style="margin-top:0"></p>
+    <pre id="result" hidden></pre>
+    <button class="btn-prev btn-full" id="btnAgain" onclick="location.reload()" hidden>처음으로</button>
+  </section>
+
+  <div class="error" id="error"></div>
+  <div class="nav" id="nav" hidden>
+    <button class="btn-prev" onclick="go(page - 1)">이전</button>
+    <button class="btn-next" id="nextBtn" onclick="next()">다음</button>
+  </div>
+  <p class="foot" id="foot" hidden>* 표시는 필수 입력 항목입니다.</p>
+</main>
+
+<script>
+/* =========================================================
+   ✏️ 설정: 항목을 바꾸고 싶으면 여기만 고치면 돼요!
+   ========================================================= */
+const CONFIG = {
+  regions: ["청장년지역"],                          // 하나뿐이면 자동으로 골라져요
+  // 점검 내용을 보낼 주소(구글 앱스 스크립트 웹 앱 주소). 비워 두면 미리보기 모드예요.
+  submitUrl: "",
+  zoneCount: 10,                                    // 1구역 ~ 10구역
+  checks: [
+    { key: "wed",   label: "삼일예배", options: ["1부 (12:00)", "2부 (19:30)", "3부 (20:00)", "그 외"], etc: ["인시센", "타지"] },
+    { key: "sun",   label: "주일예배", options: ["1부 (12:00)", "2부 (15:00)", "3부 (19:30)", "그 외"], etc: ["인시센", "타지"] },
+    { key: "dues",  label: "장년회비", options: ["납부완료", "미완료"] },
+    { key: "tithe", label: "십일조",   options: ["납부완료", "미완료"] },
+  ],
+};
+
+/* ---------- 여기부터는 화면을 움직이는 코드예요 ---------- */
+const answers = {};   // 사용자가 고른 답을 모아 두는 상자
+let page = 0;         // 지금 보고 있는 화면 번호
+
+const tg = window.Telegram && window.Telegram.WebApp;
+const insideTelegram = !!(tg && tg.initData);
+if (tg) { tg.ready(); tg.expand(); }
+
+// 지역, 구역 선택 목록 채우기
+function fillSelect(el, items) {
+  el.innerHTML = '<option value="">선택</option>' + items.map(v => `<option>${v}</option>`).join("");
+}
+const regionEl = document.getElementById("region");
+fillSelect(regionEl, CONFIG.regions);
+if (CONFIG.regions.length === 1) {   // 지역이 하나뿐이면 미리 골라 두고 못 바꾸게 하기
+  regionEl.value = CONFIG.regions[0];
+  regionEl.disabled = true;
+}
+fillSelect(document.getElementById("zone"), Array.from({ length: CONFIG.zoneCount }, (_, i) => `${i + 1}구역`));
+
+// 점검사항 버튼 만들기
+function chipGroup(key, options) {
+  return `<div class="chips" data-key="${key}">` +
+    options.map(o => `<div class="chip" data-value="${o}">${o}</div>`).join("") + `</div>`;
+}
+document.getElementById("checks").innerHTML = CONFIG.checks.map(c => `
+  <div class="section-head">${c.label}<span class="req">*</span></div>
+  ${chipGroup(c.key, c.options)}
+  ${c.etc ? `<div class="etc" id="etc-${c.key}" hidden><small>어떤 경우인가요?</small>${chipGroup(c.key + "Etc", c.etc)}</div>` : ""}
+`).join("");
+
+// 버튼을 누르면 선택 표시하기
+document.getElementById("checks").addEventListener("click", e => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  const group = chip.parentElement;
+  const key = group.dataset.key;
+  group.querySelectorAll(".chip").forEach(c => c.classList.toggle("sel", c === chip));
+  answers[key] = chip.dataset.value;
+  const etcBox = document.getElementById("etc-" + key);
+  if (etcBox) {
+    const isEtc = chip.dataset.value === "그 외";
+    etcBox.hidden = !isEtc;
+    if (!isEtc) {   // '그 외'가 아니면 아래 선택은 지우기
+      delete answers[key + "Etc"];
+      etcBox.querySelectorAll(".chip").forEach(c => c.classList.remove("sel"));
+    }
+  }
+  showError("");
+});
+
+// 화면 바꾸기
+function go(n) {
+  if (n < 0) return;
+  page = n;
+  document.querySelectorAll("section[data-page]").forEach(s => s.hidden = Number(s.dataset.page) !== n);
+  const inForm = n >= 1 && n <= 3;
+  document.getElementById("stepper").hidden = !inForm;
+  document.getElementById("nav").hidden = !inForm;
+  document.getElementById("foot").hidden = !(n === 1 || n === 2);
+  document.querySelectorAll(".step").forEach(s => {
+    const k = Number(s.dataset.n);
+    s.classList.toggle("on", k === n);
+    s.classList.toggle("done", k < n);
+    s.querySelector(".dot").textContent = k < n ? "✓" : k;
+  });
+  const nextBtn = document.getElementById("nextBtn");
+  nextBtn.textContent = n === 3 ? "제출하기" : "다음";
+  if (n === 3) { drawSummary(); refreshSubmit(); } else { nextBtn.disabled = false; }
+  showError("");
+  window.scrollTo(0, 0);
+}
+
+function showError(msg) { document.getElementById("error").textContent = msg; }
+
+// '다음' 버튼: 빠진 칸이 없는지 검사하기
+function next() {
+  if (page === 1) {
+    answers.name = document.getElementById("name").value.trim();
+    answers.region = document.getElementById("region").value;
+    answers.zone = document.getElementById("zone").value;
+    if (!answers.name)   return showError("이름을 입력해 주세요.");
+    if (!answers.region) return showError("지역을 선택해 주세요.");
+    if (!answers.zone)   return showError("구역을 선택해 주세요.");
+  }
+  if (page === 2) {
+    for (const c of CONFIG.checks) {
+      if (!answers[c.key]) return showError(`${c.label} 항목을 선택해 주세요.`);
+      if (c.etc && answers[c.key] === "그 외" && !answers[c.key + "Etc"])
+        return showError(`${c.label} '그 외'의 경우를 선택해 주세요.`);
+    }
+  }
+  if (page === 3) return submit();
+  go(page + 1);
+}
+
+// 보기 좋게 한 줄로 만들기 (예: "그 외 (타지)")
+function pretty(c) {
+  const v = answers[c.key];
+  return v === "그 외" ? `그 외 (${answers[c.key + "Etc"]})` : v;
+}
+
+function drawSummary() {
+  const rows = [["이름", answers.name], ["지역", answers.region], ["구역", answers.zone],
+                ...CONFIG.checks.map(c => [c.label, pretty(c)])];
+  document.getElementById("summary").innerHTML =
+    rows.map(([k, v]) => `<tr><th>${k}</th><td>${escapeHtml(v)}</td></tr>`).join("");
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+}
+
+function refreshSubmit() {
+  const ok = document.getElementById("ok1").checked && document.getElementById("ok2").checked;
+  document.getElementById("nextBtn").disabled = !ok;
+}
+
+// 제출 번호: 화면을 연 순간 한 번만 만들어요. 인터넷이 끊겨서 다시 눌러도 같은 번호라서
+// 서버가 "이미 받은 보고"로 알아보고 두 번 저장하지 않아요.
+const submissionId = (window.crypto && crypto.randomUUID)
+  ? crypto.randomUUID()
+  : Date.now().toString(36) + Math.random().toString(36).slice(2);
+let submitting = false;
+
+function showDone(preview, data) {
+  go(4);
+  const msg = document.getElementById("doneMsg");
+  if (preview) {
+    msg.innerHTML = "지금은 미리보기라서 실제로 보내지는 않았어요.<br>실제로는 아래 내용이 전달돼요.";
+    const pre = document.getElementById("result");
+    pre.textContent = JSON.stringify(data, null, 2);
+    pre.hidden = false;
+    document.getElementById("btnAgain").hidden = false;
+  } else {
+    msg.innerHTML = "점검 내용이 전달되었어요.<br>수고하셨습니다 🌿";
+    if (insideTelegram) setTimeout(() => tg.close(), 1500);   // 텔레그램 안이면 창을 닫아요
+  }
+}
+
+// 제출하기: 주소가 설정돼 있으면 서버(구글 시트)로 보내고, 없으면 미리보기만 보여줘요
+async function submit() {
+  if (submitting) return;   // 두 번 눌러도 한 번만 보내기
+  const data = { name: answers.name, region: answers.region, zone: answers.zone };
+  CONFIG.checks.forEach(c => data[c.key] = pretty(c));
+
+  if (!CONFIG.submitUrl) {   // 미리보기 모드
+    if (insideTelegram) { tg.sendData(JSON.stringify(data)); return; }   // (예전 방식)
+    return showDone(true, data);
+  }
+
+  submitting = true;
+  const btn = document.getElementById("nextBtn");
+  btn.disabled = true;
+  btn.textContent = "보내는 중...";
+  try {
+    const res = await fetch(CONFIG.submitUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },   // 구글 서버와 잘 통하게 하는 설정
+      body: JSON.stringify({ id: submissionId, ...data }),
+    });
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.error || "서버 오류");
+    showDone(false, data);
+  } catch (err) {
+    submitting = false;
+    btn.disabled = false;
+    btn.textContent = "제출하기";
+    showError("제출하지 못했어요. 인터넷을 확인하고 다시 눌러 주세요. (같은 내용이 두 번 저장되지는 않아요)");
+  }
+}
+</script>
+</body>
+</html>
