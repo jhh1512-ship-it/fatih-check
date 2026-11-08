@@ -81,7 +81,8 @@
   .notice { border: 1.5px solid var(--line); border-radius: 18px; padding: 8px 18px 8px 34px; background: #fff; margin: 0; }
   .notice li { margin: 13px 0; line-height: 1.55; font-size: 15px; }
   .notice li::marker { color: var(--main); font-weight: 700; }
-  .warn { color: #c2691c; text-align: center; font-weight: 700; margin: -8px 0 18px; font-size: 14.5px; }
+  .warn { color: #c2691c; text-align: center; font-weight: 700; margin: -8px 0 18px; font-size: 14.5px;
+          white-space: pre-wrap; }   /* 이모지와 글자 사이 간격 유지 */
   .alert { background: #fdf0e8; color: #b3521f; border-radius: 16px; padding: 14px; margin-top: 16px;
            font-size: 13.5px; text-align: center; }
 
@@ -191,7 +192,8 @@ const CONFIG = {
   text: {
     appTitle:   "나의 신앙",
     appSubtitle:"청장년지역 신앙 다짐표",
-    introArt:   "🌿",          // 시작 화면의 큰 그림 (이모지). 사진을 쓰려면 아래 introImage를 채워요
+    // 시작 화면의 큰 그림. 다른 이모지로 바꿔도 돼요 → 🌿 🍃 🌳 💚 ✝️ 🙏 📖
+    introArt:   "🌱",
     introImage: "",            // 예: "photo.jpg"  (채우면 이모지 대신 사진이 나와요)
     introTitle: "내 신앙은 내가 지킵니다",
     introLead:  "한 주를 돌아보며 스스로 다짐해 보세요",
@@ -227,19 +229,27 @@ let page = 0;
 const T = CONFIG.text;
 const params = new URLSearchParams(location.search);
 
-// 이번 주가 그 달의 '마지막 주'인지 판단해요.
-// 오늘부터 7일 뒤가 다음 달이면 = 이번 주가 그 달의 마지막 주예요.
+// 이번 주가 그 달의 '마지막 주'인지 판단해요. (대한민국 달력 기준: 일요일이 한 주의 시작)
+//   ① 오늘이 속한 주의 일요일 ~ 토요일을 구해요.
+//   ② 그 안에 '이번 달 마지막 날'이 들어 있으면 마지막 주예요.
+// 예) 2026년 11월은 11/29(일)~11/30(월)이 마지막 주. 12/1부터는 다시 12월 첫 주예요.
+function isLastWeekOfMonth(today) {
+  const d = today || new Date();
+  const sunday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());      // 이번 주 일요일
+  const saturday = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6); // 이번 주 토요일
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);                         // 이번 달 마지막 날
+  return lastDay >= sunday && lastDay <= saturday;
+}
+
 // 링크 끝에 ?fee=1 을 붙이면 강제로 필수, ?fee=0 이면 강제로 선택이 돼요.
 function isFeeWeek() {
   const forced = params.get("fee");
   if (forced === "1") return true;
   if (forced === "0") return false;
-  const today = new Date();
-  const week = new Date(today);
-  week.setDate(week.getDate() + 7);
-  return week.getMonth() !== today.getMonth();
+  return isLastWeekOfMonth();
 }
 const FEE_WEEK = isFeeWeek();
+const THIS_MONTH = new Date().getMonth() + 1;
 
 // 이 항목이 지금 필수인가요?
 function isRequired(c) {
@@ -279,7 +289,7 @@ document.getElementById("checks").innerHTML = CONFIG.checks.map(c => {
   const must = isRequired(c);
   const badge = must ? `<span class="req">*</span>` : `<span class="opt">선택</span>`;
   const hint = (c.required === "lastWeek" && must)
-    ? `<p class="hint">이번 주는 그 달의 마지막 주예요. 꼭 알려 주세요.</p>`
+    ? `<p class="hint">이번 주는 ${THIS_MONTH}월의 마지막 주예요. 꼭 알려 주세요.</p>`
     : (!must ? `<p class="hint">해당될 때만 골라 주세요. 건너뛰어도 됩니다.</p>` : "");
   return `
   <div class="section-head">${c.label}${badge}</div>
