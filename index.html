@@ -3,316 +3,395 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>나의 신앙 다짐</title>
+<title>내 신앙 안부</title>
 <style>
   /* ===== 🎨 색: 여기 숫자만 바꾸면 전체 색이 한 번에 바뀌어요 ===== */
   :root {
-    --deep:   #2f5c2a;   /* 가장 진한 초록 (제목 글씨) */
-    --main:   #4a7c3f;   /* 기본 초록 (강조, 선택된 단계) */
-    --btn:    #6b8c4a;   /* 버튼 초록 */
-    --btn-off:#b8c7a8;   /* 눌리지 않는 버튼 */
-    --soft:   #e9f1e4;   /* 아주 연한 초록 (배경) */
-    --line:   #dfe5d8;   /* 테두리 */
-    --ink:    #2b2f2a;   /* 본문 글씨 */
-    --gray:   #7d857a;   /* 흐린 글씨 */
-    --bg-top: #cfe3c4;   /* 위쪽 배경 */
-    --bg-bot: #f4f8f1;   /* 아래쪽 배경 */
-    --warm:   #fffdf8;   /* 카드 안쪽 따뜻한 흰색 */
+    --paper:  #F5F3EE;   /* 종이 같은 배경 */
+    --card:   #FFFFFF;   /* 카드 안쪽 */
+    --ink:    #16181A;   /* 본문 글씨 (거의 검정) */
+    --green:  #15805A;   /* 포인트 초록 */
+    --deep:   #0E6245;   /* 눌렀을 때 진한 초록 */
+    --soft:   #E7F1EB;   /* 아주 연한 초록 */
+    --gray:   #767C78;   /* 흐린 글씨 */
+    --line:   #E2DFD7;   /* 테두리 */
+    --warn:   #B4551F;   /* 주의 글씨 */
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
-    margin: 0;
+    margin: 0; background: var(--paper); color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-    background: linear-gradient(180deg, var(--bg-top) 0, #e6f0e0 300px, var(--bg-bot) 100%);
-    background-attachment: fixed;
-    color: var(--ink);
-    min-height: 100vh;
-    line-height: 1.55;
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
   }
-  header { text-align: center; padding: 30px 16px 6px; }
-  header h1 { margin: 0; font-size: 34px; color: var(--deep); letter-spacing: -0.5px;
-              text-shadow: 0 1px 0 rgba(255,255,255,.7); }
-  header p  { margin: 7px 0 0; color: var(--main); font-size: 14px; font-weight: 600; }
-  .headimg { width: 92px; height: 92px; border-radius: 50%; object-fit: cover; display: block;
-             margin: 0 auto 10px; border: 3px solid #fff; box-shadow: 0 3px 12px rgba(50,80,40,.18); }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 0 16px 40px; }
 
-  .stepper { display: flex; justify-content: space-between; max-width: 330px; margin: 24px auto 2px; position: relative; }
-  .stepper::before { content: ""; position: absolute; top: 19px; left: 42px; right: 42px; height: 2px; background: #c6d4bd; }
-  .step { position: relative; text-align: center; width: 80px; }
-  .dot { width: 38px; height: 38px; margin: 0 auto; border-radius: 50%; background: var(--warm);
-         border: 1.5px solid #c6d4bd; display: flex; align-items: center; justify-content: center;
-         font-weight: 700; color: #9aa795; transition: .2s; }
-  .step span { display: block; margin-top: 6px; font-size: 13px; color: var(--gray); }
-  .step.on .dot, .step.done .dot { background: var(--main); border-color: var(--main); color: #fff; }
-  .step.on span, .step.done span { color: var(--main); font-weight: 700; }
+  /* ===== 맨 위 라벨 (─── 청장년지역 신앙관리) ===== */
+  .brand { display: flex; align-items: center; gap: 9px; padding: 26px 2px 0; }
+  .brand i { display: block; width: 22px; height: 2px; background: var(--green); }
+  .brand span { font-size: 12px; font-weight: 700; letter-spacing: 2.5px; color: var(--green); }
 
-  .card { background: var(--warm); margin: 16px 12px 28px; border-radius: 24px; padding: 26px 20px 20px;
-          box-shadow: 0 4px 20px rgba(60,90,50,.09); }
-  .title { text-align: center; color: var(--main); font-size: 19px; font-weight: 800; margin: 0 0 20px; }
-  .sub   { text-align: center; color: var(--gray); font-size: 14px; margin: -12px 0 20px; }
+  /* ===== 진행 표시 ===== */
+  .progress { margin: 20px 2px 0; }
+  .bar { height: 3px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .fill { height: 100%; width: 0; background: var(--green); border-radius: 3px; transition: width .35s ease; }
+  .pmeta { display: flex; justify-content: space-between; margin-top: 9px; font-size: 12.5px; }
+  .pmeta b { color: var(--green); font-weight: 700; letter-spacing: .5px; }
+  .pmeta span { color: var(--gray); }
 
-  label.field { display: block; font-weight: 700; font-size: 14.5px; margin: 18px 0 8px; }
-  .req { color: #d2552f; margin-left: 3px; }
-  .opt { margin-left: 6px; font-size: 11.5px; font-weight: 600; color: var(--main);
-         background: var(--soft); border-radius: 20px; padding: 3px 9px; vertical-align: 2px; }
+  /* ===== 카드 ===== */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+          padding: 30px 22px 24px; margin-top: 18px; }
+
+  h1 { margin: 0; font-size: 31px; font-weight: 800; letter-spacing: -1.4px; line-height: 1.32; }
+  h1 em { font-style: normal; color: var(--green); }
+  h2 { margin: 0 0 6px; font-size: 23px; font-weight: 800; letter-spacing: -1px; line-height: 1.35; }
+  .lead { margin: 12px 0 0; color: var(--gray); font-size: 15px; }
+
+  /* ===== 성경 구절 ===== */
+  .verse { margin: 26px 0 0; padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .verse p { margin: 0; font-size: 15.5px; color: var(--ink); line-height: 1.65; }
+  .verse cite { display: block; margin-top: 7px; font-style: normal; font-size: 12.5px;
+                color: var(--green); font-weight: 700; letter-spacing: .4px; }
+
+  /* ===== 안내 목록 ===== */
+  .noticeTitle { margin: 26px 0 12px; font-size: 14px; font-weight: 800; letter-spacing: -.3px; }
+  ol.notice { margin: 0; padding-left: 20px; }
+  ol.notice li { margin: 9px 0; font-size: 14.5px; color: #43484A; }
+  ol.notice li::marker { color: var(--green); font-weight: 700; }
+
+  /* ===== 입력 ===== */
+  .field { display: block; font-size: 14px; font-weight: 700; margin: 22px 0 8px; letter-spacing: -.3px; }
+  .field:first-of-type { margin-top: 4px; }
+  .req { color: var(--warn); margin-left: 3px; }
+  .opt { margin-left: 7px; font-size: 11px; font-weight: 700; color: var(--green);
+         background: var(--soft); border-radius: 20px; padding: 3px 9px; vertical-align: 2px; letter-spacing: 0; }
   input[type=text], select {
-    width: 100%; padding: 14px; font-size: 16px; border: 1.5px solid var(--line); border-radius: 14px;
-    background: #fff; -webkit-appearance: none; appearance: none; color: var(--ink);
+    width: 100%; padding: 14px; font-size: 16px; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 12px; background: #fff;
+    -webkit-appearance: none; appearance: none; font-family: inherit;
   }
-  input[type=text]:focus, select:focus { outline: none; border-color: var(--main); }
-  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a7c3f' stroke-width='1.8' fill='none'/%3E%3C/svg%3E");
+  input[type=text]:focus, select:focus { outline: none; border-color: var(--green); }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2315805A' stroke-width='1.7' fill='none'/%3E%3C/svg%3E");
            background-repeat: no-repeat; background-position: right 15px center; }
-  select:disabled { background-color: var(--soft); background-image: none; color: #4b5447; opacity: 1; }
+  select:disabled, input:disabled { background-color: var(--soft); background-image: none; color: #3E4B44; opacity: 1; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-  .section-head { margin: 24px 0 6px; padding-top: 18px; border-top: 1px dashed var(--line);
-                  font-size: 16px; font-weight: 800; color: var(--deep); }
-  .section-head:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
-  .hint { font-size: 12.5px; color: var(--gray); margin: 0 0 8px; font-weight: 400; }
-  .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
-  .chip { padding: 14px 8px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff;
-          font-size: 15px; color: #67705f; text-align: center; cursor: pointer; user-select: none; transition: .15s; }
-  .chip.sel { background: var(--btn); border-color: var(--btn); color: #fff; font-weight: 700;
-              box-shadow: 0 2px 8px rgba(107,140,74,.3); }
-  .etc { margin-top: 9px; padding: 11px; background: var(--soft); border-radius: 14px; }
-  .etc small { display: block; color: var(--main); font-weight: 600; margin: 0 0 7px 2px; }
+  /* ===== 항목 ===== */
+  .item { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .item:first-child { margin-top: 4px; padding-top: 0; border-top: 0; }
+  .itemHead { font-size: 16.5px; font-weight: 800; letter-spacing: -.5px; }
+  .hint { margin: 6px 0 0; font-size: 13px; color: var(--gray); }
+  .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .chip { padding: 14px 6px; border: 1px solid var(--line); border-radius: 12px; background: #fff;
+          font-size: 15px; color: #5C6360; text-align: center; cursor: pointer; user-select: none; transition: .12s; }
+  .chip.sel { background: var(--green); border-color: var(--green); color: #fff; font-weight: 700; }
+  .chip.skip { grid-column: 1 / -1; color: var(--gray); font-size: 14.5px; }
+  .chip.skip.sel { background: #5F6B64; border-color: #5F6B64; color: #fff; }
+  .etc { margin-top: 8px; padding: 12px; background: var(--soft); border-radius: 12px; }
+  .etc small { display: block; font-size: 12.5px; font-weight: 700; color: var(--green); margin: 0 0 8px 2px; }
+  .etc .chips { margin-top: 0; }
 
-  .notice { border: 1.5px solid var(--line); border-radius: 18px; padding: 8px 18px 8px 34px; background: #fff; margin: 0; }
-  .notice li { margin: 13px 0; line-height: 1.55; font-size: 15px; }
-  .notice li::marker { color: var(--main); font-weight: 700; }
-  .warn { color: #c2691c; text-align: center; font-weight: 700; margin: -8px 0 18px; font-size: 14.5px;
-          white-space: pre-wrap; }   /* 이모지와 글자 사이 간격 유지 */
-  .alert { background: #fdf0e8; color: #b3521f; border-radius: 16px; padding: 14px; margin-top: 16px;
-           font-size: 13.5px; text-align: center; }
+  /* ===== 최종 확인 ===== */
+  table.sum { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 4px; }
+  .sum th { text-align: left; width: 38%; padding: 11px 2px; color: var(--gray);
+            font-weight: 500; border-bottom: 1px solid #F0EEE9; }
+  .sum td { padding: 11px 2px; font-weight: 700; color: var(--ink); border-bottom: 1px solid #F0EEE9; }
+  .sum td.none { color: #A8ADA9; font-weight: 500; }
+  .check { display: flex; gap: 11px; align-items: flex-start; border: 1px solid var(--line);
+           border-radius: 12px; padding: 14px; margin-top: 10px; font-size: 14.5px; cursor: pointer; }
+  .check input { width: 21px; height: 21px; margin: 1px 0 0; flex: none; accent-color: var(--green); }
 
-  table.sum { width: 100%; border-collapse: collapse; font-size: 15px; }
-  .sum th { text-align: left; color: var(--gray); font-weight: 500; padding: 10px 4px; width: 38%;
-            border-bottom: 1px solid #eef1ec; }
-  .sum td { padding: 10px 4px; font-weight: 700; color: var(--deep); border-bottom: 1px solid #eef1ec; }
-  .sum td.none { color: #a8b0a4; font-weight: 500; }
-  .check { display: flex; gap: 12px; align-items: flex-start; border: 1.5px solid var(--line); border-radius: 16px;
-           padding: 14px; margin-top: 11px; line-height: 1.45; cursor: pointer; font-size: 14.5px; }
-  .check input { width: 22px; height: 22px; margin: 1px 0 0; flex: none; accent-color: var(--btn); }
+  /* ===== 완료 ===== */
+  .done { text-align: center; padding: 14px 0 6px; }
+  .done .emoji { font-size: 50px; line-height: 1; }
+  .done h2 { margin: 16px 0 0; font-size: 26px; }
+  .done h2 em { font-style: normal; color: var(--green); }
+  .done p { margin: 14px 0 0; color: #4A504C; font-size: 15px; }
+  .done .verse { margin-top: 24px; text-align: left; }
 
-  .error { color: #cf4a2e; font-size: 13.5px; min-height: 18px; margin-top: 14px; text-align: center; font-weight: 600; }
-  .nav { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-top: 8px; }
-  button { font-size: 17px; font-weight: 700; padding: 16px; border-radius: 16px; cursor: pointer; font-family: inherit; }
-  .btn-prev { background: #fff; border: 1.5px solid var(--line); color: #5a6355; }
-  .btn-next { background: var(--btn); border: 0; color: #fff; box-shadow: 0 3px 10px rgba(107,140,74,.28); }
-  .btn-next:disabled { background: var(--btn-off); box-shadow: none; cursor: default; }
-  .btn-full { width: 100%; margin-top: 20px; }
-  .foot { text-align: center; color: var(--gray); font-size: 12px; margin-top: 14px; }
-  pre { background: var(--soft); padding: 12px; border-radius: 14px; font-size: 12px; white-space: pre-wrap; text-align: left; }
+  /* ===== 버튼 ===== */
+  .err { min-height: 20px; margin-top: 16px; text-align: center; font-size: 13.5px;
+         font-weight: 600; color: var(--warn); }
+  .nav { display: grid; grid-template-columns: 1fr 1.6fr; gap: 9px; margin-top: 4px; }
+  button { font-family: inherit; font-size: 16.5px; font-weight: 700; padding: 16px;
+           border-radius: 12px; cursor: pointer; letter-spacing: -.3px; }
+  .btn-prev { background: #fff; border: 1px solid var(--line); color: #5C6360; }
+  .btn-next { background: var(--green); border: 0; color: #fff; }
+  .btn-next:active { background: var(--deep); }
+  .btn-next:disabled { background: #B5C4BC; cursor: default; }
+  .btn-full { width: 100%; margin-top: 26px; }
+  .foot { margin: 16px 0 0; text-align: center; font-size: 12px; color: var(--gray); }
+  pre { background: var(--soft); padding: 12px; border-radius: 12px; font-size: 12px;
+        white-space: pre-wrap; text-align: left; }
   [hidden] { display: none !important; }
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<header>
-  <h1 id="appTitle"></h1>
-  <p id="appSub"></p>
-  <div class="stepper" id="stepper" hidden>
-    <div class="step" data-n="1"><div class="dot">1</div><span>인적사항</span></div>
-    <div class="step" data-n="2"><div class="dot">2</div><span>점검사항</span></div>
-    <div class="step" data-n="3"><div class="dot">3</div><span>최종확인</span></div>
+  <div class="brand"><i></i><span id="brandText"></span></div>
+
+  <div class="progress" id="progress" hidden>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="pmeta"><b id="pStep"></b><span id="pName"></span></div>
   </div>
-</header>
 
-<main class="card">
+  <main class="card">
 
-  <!-- 0. 시작 화면 -->
-  <section data-page="0">
-    <div id="introArt" style="text-align:center;font-size:38px;margin-bottom:4px"></div>
-    <h2 id="introTitle" style="text-align:center;margin:6px 0 4px;font-size:22px;color:var(--deep)"></h2>
-    <p id="introLead" class="sub" style="margin:4px 0 16px"></p>
-    <p class="warn" id="introWarn"></p>
-    <ol class="notice" id="noticeList"></ol>
-    <button class="btn-next btn-full" onclick="go(1)" id="startBtn"></button>
-  </section>
+    <!-- 0. 시작 -->
+    <section data-page="0">
+      <h1 id="introTitle"></h1>
+      <p class="lead" id="introLead"></p>
+      <div class="verse"><p id="verseText"></p><cite id="verseRef"></cite></div>
+      <div class="noticeTitle" id="noticeTitle"></div>
+      <ol class="notice" id="noticeList"></ol>
+      <button class="btn-next btn-full" id="startBtn" onclick="go(1)"></button>
+    </section>
 
-  <!-- 1. 인적사항 -->
-  <section data-page="1" hidden>
-    <h3 class="title">🌿 인적사항 🌿</h3>
-    <label class="field">이름<span class="req">*</span></label>
-    <input type="text" id="name" placeholder="이름 입력" maxlength="20">
-    <div class="row">
-      <div>
-        <label class="field">지역<span class="req">*</span></label>
-        <select id="region"></select>
+    <!-- 1. 인적사항 -->
+    <section data-page="1" hidden>
+      <h2>먼저, 누구신지 알려주세요</h2>
+      <p class="lead">이름만 적어주시면 바로 넘어갑니다.</p>
+      <label class="field">이름<span class="req">*</span></label>
+      <input type="text" id="name" placeholder="이름 입력" maxlength="20" autocomplete="name">
+      <div class="row">
+        <div>
+          <label class="field">지역<span class="req">*</span></label>
+          <select id="region"></select>
+        </div>
+        <div>
+          <label class="field">구역<span class="req">*</span></label>
+          <select id="zone"></select>
+        </div>
       </div>
-      <div>
-        <label class="field">구역<span class="req">*</span></label>
-        <select id="zone"></select>
+    </section>
+
+    <!-- 2~4. 항목 그룹 -->
+    <section data-page="2" hidden><h2 class="gTitle"></h2><p class="lead gLead"></p><div class="gBody"></div></section>
+    <section data-page="3" hidden><h2 class="gTitle"></h2><p class="lead gLead"></p><div class="gBody"></div></section>
+    <section data-page="4" hidden><h2 class="gTitle"></h2><p class="lead gLead"></p><div class="gBody"></div></section>
+
+    <!-- 5. 최종 확인 -->
+    <section data-page="5" hidden>
+      <h2>보내기 전에 한 번만 봐주세요</h2>
+      <p class="lead" style="margin-bottom:18px">고칠 곳이 있으면 이전으로 돌아가시면 됩니다.</p>
+      <table class="sum" id="summary"></table>
+      <label class="check"><input type="checkbox" id="ok1" onchange="refreshSubmit()">
+        <span>적어주신 내용이 맞는지 확인했습니다.</span></label>
+      <label class="check"><input type="checkbox" id="ok2" onchange="refreshSubmit()">
+        <span>보낸 뒤에는 고칠 수 없다는 걸 알고 있습니다.</span></label>
+    </section>
+
+    <!-- 6. 완료 -->
+    <section data-page="6" hidden>
+      <div class="done">
+        <div class="emoji" id="doneEmoji"></div>
+        <h2 id="doneTitle"></h2>
+        <p id="doneBody"></p>
+        <div class="verse" id="doneVerse" hidden><p id="doneVerseText"></p><cite id="doneVerseRef"></cite></div>
       </div>
+      <pre id="result" hidden></pre>
+      <button class="btn-prev btn-full" id="btnAgain" onclick="location.reload()" hidden>처음으로</button>
+    </section>
+
+    <div class="err" id="error"></div>
+    <div class="nav" id="nav" hidden>
+      <button class="btn-prev" onclick="go(page - 1)">이전</button>
+      <button class="btn-next" id="nextBtn" onclick="next()">다음</button>
     </div>
-  </section>
-
-  <!-- 2. 점검사항 -->
-  <section data-page="2" hidden>
-    <h3 class="title">🌿 점검사항 🌿</h3>
-    <div id="checks"></div>
-  </section>
-
-  <!-- 3. 최종확인 -->
-  <section data-page="3" hidden>
-    <h3 class="title" style="color:var(--deep)">최종 점검</h3>
-    <p class="sub">제출 전, 한 번 더 확인해 주세요!</p>
-    <table class="sum" id="summary"></table>
-    <label class="check"><input type="checkbox" id="ok1" onchange="refreshSubmit()">
-      <span>입력한 내용에 오타나 잘못된 정보가 없음을 확인했습니다.</span></label>
-    <label class="check"><input type="checkbox" id="ok2" onchange="refreshSubmit()">
-      <span>제출 후에는 수정할 수 없다는 것을 확인했습니다.</span></label>
-    <div class="alert">⚠️ 제출 후에는 수정이 불가하니 신중하게 확인해 주세요.</div>
-  </section>
-
-  <!-- 4. 완료 화면 -->
-  <section data-page="4" hidden>
-    <div style="text-align:center;font-size:44px">🌳</div>
-    <h2 style="text-align:center;color:var(--deep);margin:8px 0 2px">제출 완료!</h2>
-    <p class="sub" id="doneMsg" style="margin-top:6px"></p>
-    <pre id="result" hidden></pre>
-    <button class="btn-prev btn-full" id="btnAgain" onclick="location.reload()" hidden>처음으로</button>
-  </section>
-
-  <div class="error" id="error"></div>
-  <div class="nav" id="nav" hidden>
-    <button class="btn-prev" onclick="go(page - 1)">이전</button>
-    <button class="btn-next" id="nextBtn" onclick="next()">다음</button>
-  </div>
-  <p class="foot" id="foot" hidden>* 표시는 필수 입력 항목입니다.</p>
-</main>
+    <p class="foot" id="foot" hidden>* 표시는 꼭 알려주셔야 하는 항목입니다</p>
+  </main>
+</div>
 
 <script>
 /* =========================================================
-   ✏️ 설정: 글자와 항목을 바꾸고 싶으면 여기만 고치면 돼요!
+   ✏️ 설정: 글자와 항목을 바꾸려면 여기만 고치면 돼요
    ========================================================= */
 const CONFIG = {
-  // ----- 화면에 나오는 글자 -----
+
+  // ---------- 보낼 주소 ----------
+  submitUrl: "https://script.google.com/macros/s/AKfycbxoiYnc--r5ZSQHyawJVVxWHfeY29nW-jAMZcU9zr1kyQ_uK1T55GVHxGV1NC737zRv/exec",
+
+  // ---------- 인적사항 ----------
+  regions: ["청장년지역"],   // 하나뿐이면 자동으로 골라져요
+  zones:   ["4구역"],        // 하나뿐이면 자동으로 골라져요
+
+  // ---------- 화면 글자 ----------
   text: {
-    appTitle:   "나의 신앙",
-    appSubtitle:"청장년지역 신앙 다짐표",
-    // 시작 화면의 큰 그림. 다른 이모지로 바꿔도 돼요 → 🌿 🍃 🌳 💚 ✝️ 🙏 📖
-    introArt:   "🌱",
-    introImage: "",            // 예: "photo.jpg"  (채우면 이모지 대신 사진이 나와요)
-    introTitle: "내 신앙은 내가 지킵니다",
-    introLead:  "한 주를 돌아보며 스스로 다짐해 보세요",
-    introWarn:  "🙏  작성 전 꼭 읽어주세요!",
+    brand:       "청장년지역 신앙관리",
+    introTitle:  "이번 주도,<br><em>내 신앙에 안부</em>를<br>물어 주세요.",
+    introLead:   "잘 지냈는지 한 번 들여다보는 시간입니다. 1분이면 충분해요.",
+    noticeTitle: "잠깐만 읽어주세요",
     notices: [
-      "한 주의 점검은 예배 후 작성해 주시면 됩니다.",
-      "입력한 개인 정보는 구역장만 확인합니다.",
-      "제출 후에는 수정이 불가하니 신중하게 알려주세요.",
+      "예배 및 교육 전 편하신 시간에 작성해주시면 됩니다.",
+      "적어주신 내용은 담당 구역장만 확인합니다.",
+      "한 번만 작성해 주세요. 보낸 뒤에는 고칠 수 없어요.",
     ],
-    startBtn:   "다짐하고 시작하기",
-    doneMsg:    "이번 한 주도 수고하셨습니다 🌿<br>다짐한 대로 지켜가요!",
+    startBtn: "안부 전하러 가기",
   },
 
-  // ----- 보낼 주소와 항목 -----
-  submitUrl: "https://script.google.com/macros/s/AKfycbxoiYnc--r5ZSQHyawJVVxWHfeY29nW-jAMZcU9zr1kyQ_uK1T55GVHxGV1NC737zRv/exec",
-  regions: ["청장년지역"],
-  zoneCount: 10,
-
-  // required: true=항상 필수 / false=항상 선택 / "lastWeek"=그 달 마지막 주에만 필수
-  checks: [
-    { key: "wed",   label: "삼일예배", required: true,
-      options: ["1부 (12:00)", "2부 (19:30)", "3부 (20:00)", "그 외"], etc: ["인시센", "타지"] },
-    { key: "sun",   label: "주일예배", required: true,
-      options: ["1부 (12:00)", "2부 (15:00)", "3부 (19:30)", "그 외"], etc: ["인시센", "타지"] },
-    { key: "dues",  label: "장년회비", required: "lastWeek", options: ["납부완료", "미완료"] },
-    { key: "tithe", label: "십일조",   required: "lastWeek", options: ["납부완료", "미완료"] },
+  // ---------- 월별 성경 구절 (1월~12월 순서) ----------
+  verses: [
+    { t: "강하고 담대하라", r: "여호수아 1:9" },
+    { t: "범사에 감사하라", r: "데살로니가전서 5:18" },
+    { t: "주의 말씀은 내 발의 등이요 내 길의 빛이니이다", r: "시편 119:105" },
+    { t: "내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라", r: "빌립보서 4:13" },
+    { t: "너희는 세상의 빛이라", r: "마태복음 5:14" },
+    { t: "선을 행하되 낙심하지 말지니", r: "갈라디아서 6:9" },
+    { t: "여호와는 나의 목자시니 내게 부족함이 없으리로다", r: "시편 23:1" },
+    { t: "너희 염려를 다 주께 맡기라", r: "베드로전서 5:7" },
+    { t: "항상 기뻐하라 쉬지 말고 기도하라", r: "데살로니가전서 5:16~17" },
+    { t: "무엇을 하든지 마음을 다하여 주께 하듯 하라", r: "골로새서 3:23" },
+    { t: "의인의 간구는 역사하는 힘이 큼이니라", r: "야고보서 5:16" },
+    { t: "너희는 먼저 그의 나라와 그의 의를 구하라", r: "마태복음 6:33" },
   ],
+
+  // ---------- 점검 항목 ----------
+  // required: true=항상 필수 / false=선택 / "lastWeek"=그 달 마지막 주에만 필수
+  // skip: true 이면 '다음에 가겠습니다' 버튼이 생기고, 안 고르면 '미참석'으로 보내요
+  checks: [
+    { key: "wed",   label: "삼일예배",     required: true,
+      options: ["1부 (12:00)", "2부 (19:30)", "3부 (20:00)", "그 외"], etc: ["인시센", "타지"] },
+    { key: "sun",   label: "주일예배",     required: true,
+      options: ["1부 (12:00)", "2부 (15:00)", "3부 (19:30)", "그 외"], etc: ["인시센", "타지"] },
+
+    { key: "tue",   label: "화요신앙교육", required: false, skip: true,
+      options: ["1부 (09:00)", "2부 (17:00)", "3부 (19:50)", "그 외"], etc: ["줌", "인시센"] },
+    { key: "mon",   label: "월요일 전도단", required: false, skip: true,
+      options: ["1부 (10:50)", "2부 (17:00)", "3부 (19:50)"] },
+    { key: "fri",   label: "금요일 전도단", required: false, skip: true,
+      options: ["1부 (09:50)", "2부 (17:00)", "3부 (20:10)"] },
+
+    { key: "dues",  label: "장년회비",     required: "lastWeek", options: ["납부완료", "미완료"] },
+    { key: "tithe", label: "십일조",       required: "lastWeek", options: ["납부완료", "미완료"] },
+  ],
+
+  // ---------- 단계 묶음 (2~4단계) ----------
+  groups: [
+    { name: "예배",      keys: ["wed", "sun"],
+      title: "예배는 어떠셨어요?",
+      lead:  "다녀오신 시간을 골라주시면 됩니다." },
+    { name: "교육·모임", keys: ["tue", "mon", "fri"],
+      title: "이번 주 모임은 어떠셨나요?",
+      lead:  "못 가셨어도 괜찮습니다. 그럴 땐 '다음에 가겠습니다'를 눌러주시면 돼요." },
+    { name: "헌금",      keys: ["dues", "tithe"],
+      title: "마지막으로 하나만요",
+      lead:  "해당되실 때만 골라주세요. 건너뛰셔도 괜찮습니다.",
+      titleLast: "이번 주는 {월}월 마지막 주입니다",
+      leadLast:  "회비와 십일조까지 함께 알려주시면 정리가 수월합니다. 감사합니다!" },
+  ],
+
+  // ---------- 완료 화면 (모임 참석 수에 따라 달라져요) ----------
+  done: [
+    { emoji: "🌳", title: "당신은 <em>의인</em>이십니다!", verse: true,
+      body: "한 주 동안 하나도 빠짐없이 함께해 주셨네요ㅎㅎ<br>그 걸음 하나하나가 다 쌓이고 있습니다.<br><br>이번 주도 고생 많으셨어요!!" },
+    { emoji: "🌿", title: "당신은 <em>의인</em>이십니다!", verse: true,
+      body: "예배 자리를 지키신 것만으로도 충분히 귀합니다.<br>못 가신 자리는 다음 주에 또 기회가 있으니까요.<br><br>안부 전해주셔서 감사합니다!" },
+    { emoji: "🌱", title: "당신은 <em>의인</em>이십니다!", verse: true,
+      body: "바쁜 한 주였나 봅니다. 그래도 이렇게 들여다봐 주신 것 자체가 신앙이에요.<br><br>다음 주엔 한 자리에서 뵙겠습니다ㅎㅎ<br>이번 주도 수고 많으셨어요!" },
+  ],
+
+  errors: {
+    name:   "이름만 적어주시면 됩니다 🙂",
+    region: "지역도 하나 골라주세요",
+    zone:   "구역도 하나 골라주세요",
+    pick:   "{항목}은(는) 꼭 알려주셔야 해요",
+    etc:    "{항목}의 '그 외'가 어떤 경우인지 골라주세요",
+    send:   "전송이 안 됐어요. 인터넷 확인하시고 한 번만 더 눌러주세요 (중복 저장은 안 되니 안심하셔도 됩니다)",
+  },
 };
 
+const SKIP_LABEL = "다음에 가겠습니다";   // 화면에 보이는 글자
+const ABSENT = "미참석";                  // 시트에 적히는 글자
+
 /* ---------- 여기부터는 화면을 움직이는 코드예요 ---------- */
+const T = CONFIG.text;
 const answers = {};
 let page = 0;
-const T = CONFIG.text;
 const params = new URLSearchParams(location.search);
+const LAST_PAGE = 5;   // 최종 확인 단계
+const DONE_PAGE = 6;
 
-// 이번 주가 그 달의 '마지막 주'인지 판단해요. (대한민국 달력 기준: 일요일이 한 주의 시작)
-//   ① 오늘이 속한 주의 일요일 ~ 토요일을 구해요.
-//   ② 그 안에 '이번 달 마지막 날'이 들어 있으면 마지막 주예요.
-// 예) 2026년 11월은 11/29(일)~11/30(월)이 마지막 주. 12/1부터는 다시 12월 첫 주예요.
+// ===== 이번 주가 그 달의 마지막 주인가? (대한민국 달력: 일요일이 한 주의 시작) =====
+//  ① 오늘이 속한 주의 일요일~토요일을 구하고
+//  ② 그 안에 '이번 달 마지막 날'이 들어 있으면 마지막 주예요.
+//  예) 2026년 11월은 11/29(일)~11/30(월)이 마지막 주. 12/1부터는 다시 12월 첫 주.
 function isLastWeekOfMonth(today) {
   const d = today || new Date();
-  const sunday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());      // 이번 주 일요일
-  const saturday = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6); // 이번 주 토요일
-  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);                         // 이번 달 마지막 날
+  const sunday   = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+  const saturday = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6);
+  const lastDay  = new Date(d.getFullYear(), d.getMonth() + 1, 0);
   return lastDay >= sunday && lastDay <= saturday;
 }
-
 // 링크 끝에 ?fee=1 을 붙이면 강제로 필수, ?fee=0 이면 강제로 선택이 돼요.
-function isFeeWeek() {
-  const forced = params.get("fee");
-  if (forced === "1") return true;
-  if (forced === "0") return false;
-  return isLastWeekOfMonth();
-}
-const FEE_WEEK = isFeeWeek();
-const THIS_MONTH = new Date().getMonth() + 1;
+const FEE_WEEK = params.get("fee") === "1" ? true
+               : params.get("fee") === "0" ? false
+               : isLastWeekOfMonth();
+const THIS_MONTH = new Date().getMonth();           // 0 = 1월
+const VERSE = CONFIG.verses[THIS_MONTH] || CONFIG.verses[0];
 
-// 이 항목이 지금 필수인가요?
-function isRequired(c) {
-  return c.required === true || (c.required === "lastWeek" && FEE_WEEK);
-}
+const conf = key => CONFIG.checks.find(c => c.key === key);
+const isRequired = c => c.required === true || (c.required === "lastWeek" && FEE_WEEK);
 
-// ----- 시작 화면의 글자 채우기 -----
-document.getElementById("appTitle").textContent = T.appTitle;
-document.getElementById("appSub").textContent = T.appSubtitle;
-document.getElementById("introArt").innerHTML = T.introImage
-  ? `<img class="headimg" src="${T.introImage}" alt="">`
-  : T.introArt;
-document.getElementById("introTitle").textContent = T.introTitle;
+// ===== 시작 화면 채우기 =====
+document.getElementById("brandText").textContent = T.brand;
+document.getElementById("introTitle").innerHTML  = T.introTitle;
 document.getElementById("introLead").textContent = T.introLead;
-document.getElementById("introWarn").textContent = T.introWarn;
+document.getElementById("verseText").textContent = "“" + VERSE.t + "”";
+document.getElementById("verseRef").textContent  = VERSE.r;
+document.getElementById("noticeTitle").textContent = T.noticeTitle;
 document.getElementById("noticeList").innerHTML = T.notices.map(n => `<li>${n}</li>`).join("");
 document.getElementById("startBtn").textContent = T.startBtn;
 
-// ----- 지역, 구역 목록 채우기 -----
+// ===== 지역·구역 채우기 (하나뿐이면 자동 선택) =====
 function fillSelect(el, items) {
   el.innerHTML = '<option value="">선택</option>' + items.map(v => `<option>${v}</option>`).join("");
+  if (items.length === 1) { el.value = items[0]; el.disabled = true; }
 }
-const regionEl = document.getElementById("region");
-fillSelect(regionEl, CONFIG.regions);
-if (CONFIG.regions.length === 1) {   // 지역이 하나뿐이면 미리 골라 두고 못 바꾸게 하기
-  regionEl.value = CONFIG.regions[0];
-  regionEl.disabled = true;
-}
-fillSelect(document.getElementById("zone"), Array.from({ length: CONFIG.zoneCount }, (_, i) => `${i + 1}구역`));
+fillSelect(document.getElementById("region"), CONFIG.regions);
+fillSelect(document.getElementById("zone"),   CONFIG.zones);
 
-// ----- 점검사항 버튼 만들기 -----
-function chipGroup(key, options) {
-  return `<div class="chips" data-key="${key}">` +
-    options.map(o => `<div class="chip" data-value="${o}">${o}</div>`).join("") + `</div>`;
+// ===== 2~4단계 만들기 =====
+function chipGroup(key, options, extraClass) {
+  return `<div class="chips" data-key="${key}">` + options.map(o =>
+    `<div class="chip${extraClass && o === SKIP_LABEL ? " skip" : ""}" data-value="${o}">${o}</div>`).join("") + `</div>`;
 }
-document.getElementById("checks").innerHTML = CONFIG.checks.map(c => {
+function itemHtml(c) {
   const must = isRequired(c);
   const badge = must ? `<span class="req">*</span>` : `<span class="opt">선택</span>`;
-  const hint = (c.required === "lastWeek" && must)
-    ? `<p class="hint">이번 주는 ${THIS_MONTH}월의 마지막 주예요. 꼭 알려 주세요.</p>`
-    : (!must ? `<p class="hint">해당될 때만 골라 주세요. 건너뛰어도 됩니다.</p>` : "");
-  return `
-  <div class="section-head">${c.label}${badge}</div>
-  ${hint}
-  ${chipGroup(c.key, c.options)}
-  ${c.etc ? `<div class="etc" id="etc-${c.key}" hidden><small>어떤 경우인가요?</small>${chipGroup(c.key + "Etc", c.etc)}</div>` : ""}`;
-}).join("");
+  let hint = "";
+  if (c.required === "lastWeek" && must) hint = `<p class="hint">이번 주는 ${THIS_MONTH + 1}월 마지막 주라 꼭 알려주셔야 해요.</p>`;
+  const opts = c.skip ? c.options.concat([SKIP_LABEL]) : c.options;
+  return `<div class="item">
+    <div class="itemHead">${c.label}${badge}</div>${hint}
+    ${chipGroup(c.key, opts, true)}
+    ${c.etc ? `<div class="etc" id="etc-${c.key}" hidden><small>어떤 경우인가요?</small>${chipGroup(c.key + "Etc", c.etc)}</div>` : ""}
+  </div>`;
+}
+CONFIG.groups.forEach((g, i) => {
+  const sec = document.querySelector(`section[data-page="${i + 2}"]`);
+  const last = FEE_WEEK && g.titleLast;
+  sec.querySelector(".gTitle").textContent = last ? g.titleLast.replace("{월}", THIS_MONTH + 1) : g.title;
+  sec.querySelector(".gLead").textContent  = last ? g.leadLast : g.lead;
+  sec.querySelector(".gBody").innerHTML    = g.keys.map(k => itemHtml(conf(k))).join("");
+});
 
-// ----- 버튼을 누르면 선택 표시하기 (같은 걸 다시 누르면 선택 해제) -----
-document.getElementById("checks").addEventListener("click", e => {
+// ===== 버튼 누르면 선택 =====
+document.addEventListener("click", e => {
   const chip = e.target.closest(".chip");
   if (!chip) return;
   const group = chip.parentElement;
   const key = group.dataset.key;
-  const conf = CONFIG.checks.find(c => c.key === key);
+  const c = conf(key);
   const already = chip.classList.contains("sel");
 
-  // 선택이 자유로운 항목은 한 번 더 누르면 취소돼요
-  if (already && conf && !isRequired(conf)) {
+  // 필수가 아닌 항목은 같은 걸 한 번 더 누르면 선택이 풀려요
+  if (already && c && !isRequired(c)) {
     chip.classList.remove("sel");
     delete answers[key];
   } else {
-    group.querySelectorAll(".chip").forEach(c => c.classList.toggle("sel", c === chip));
+    group.querySelectorAll(".chip").forEach(x => x.classList.toggle("sel", x === chip));
     answers[key] = chip.dataset.value;
   }
 
@@ -322,73 +401,82 @@ document.getElementById("checks").addEventListener("click", e => {
     etcBox.hidden = !isEtc;
     if (!isEtc) {
       delete answers[key + "Etc"];
-      etcBox.querySelectorAll(".chip").forEach(c => c.classList.remove("sel"));
+      etcBox.querySelectorAll(".chip").forEach(x => x.classList.remove("sel"));
     }
   }
   showError("");
 });
 
-// ----- 화면 바꾸기 -----
+// ===== 화면 바꾸기 =====
 function go(n) {
   if (n < 0) return;
   page = n;
   document.querySelectorAll("section[data-page]").forEach(s => s.hidden = Number(s.dataset.page) !== n);
-  const inForm = n >= 1 && n <= 3;
-  document.getElementById("stepper").hidden = !inForm;
+  const inForm = n >= 1 && n <= LAST_PAGE;
+  document.getElementById("progress").hidden = !inForm;
   document.getElementById("nav").hidden = !inForm;
-  document.getElementById("foot").hidden = !(n === 1 || n === 2);
-  document.querySelectorAll(".step").forEach(s => {
-    const k = Number(s.dataset.n);
-    s.classList.toggle("on", k === n);
-    s.classList.toggle("done", k < n);
-    s.querySelector(".dot").textContent = k < n ? "✓" : k;
-  });
-  const nextBtn = document.getElementById("nextBtn");
-  nextBtn.textContent = n === 3 ? "제출하기" : "다음";
-  if (n === 3) { drawSummary(); refreshSubmit(); } else { nextBtn.disabled = false; }
+  document.getElementById("foot").hidden = !(n >= 1 && n <= 4);
+  if (inForm) {
+    const names = ["인적사항", ...CONFIG.groups.map(g => g.name), "최종확인"];
+    document.getElementById("fill").style.width = (n / LAST_PAGE * 100) + "%";
+    document.getElementById("pStep").textContent = n + " / " + LAST_PAGE;
+    document.getElementById("pName").textContent = names[n - 1];
+  }
+  const btn = document.getElementById("nextBtn");
+  btn.textContent = n === LAST_PAGE ? "안부 전하기" : "다음";
+  if (n === LAST_PAGE) { drawSummary(); refreshSubmit(); } else { btn.disabled = false; }
   showError("");
   window.scrollTo(0, 0);
 }
 
 function showError(msg) { document.getElementById("error").textContent = msg; }
 
-// ----- '다음' 버튼: 빠진 칸이 없는지 검사하기 -----
+// ===== '다음' 버튼: 빠진 칸 검사 =====
 function next() {
+  const E = CONFIG.errors;
   if (page === 1) {
-    answers.name = document.getElementById("name").value.trim();
+    answers.name   = document.getElementById("name").value.trim();
     answers.region = document.getElementById("region").value;
-    answers.zone = document.getElementById("zone").value;
-    if (!answers.name)   return showError("이름을 입력해 주세요.");
-    if (!answers.region) return showError("지역을 선택해 주세요.");
-    if (!answers.zone)   return showError("구역을 선택해 주세요.");
+    answers.zone   = document.getElementById("zone").value;
+    if (!answers.name)   return showError(E.name);
+    if (!answers.region) return showError(E.region);
+    if (!answers.zone)   return showError(E.zone);
   }
-  if (page === 2) {
-    for (const c of CONFIG.checks) {
-      if (isRequired(c) && !answers[c.key]) return showError(`${c.label} 항목을 선택해 주세요.`);
-      if (c.etc && answers[c.key] === "그 외" && !answers[c.key + "Etc"])
-        return showError(`${c.label} '그 외'의 경우를 선택해 주세요.`);
+  if (page >= 2 && page <= 4) {
+    for (const key of CONFIG.groups[page - 2].keys) {
+      const c = conf(key);
+      if (isRequired(c) && !answers[key]) return showError(E.pick.replace("{항목}", c.label));
+      if (c.etc && answers[key] === "그 외" && !answers[key + "Etc"])
+        return showError(E.etc.replace("{항목}", c.label));
     }
   }
-  if (page === 3) return submit();
+  if (page === LAST_PAGE) return submit();
   go(page + 1);
 }
 
-// 보기 좋게 한 줄로 만들기 (예: "그 외 (타지)")
-function pretty(c) {
+// ===== 보낼 값 만들기 =====
+//  · '그 외'는 괄호를 붙여서  → "그 외 (타지)"
+//  · 모임을 안 골랐거나 '다음에 가겠습니다'면 → "미참석"
+//  · 헌금을 안 골랐으면 → 빈 값 (시트에 '미입력'으로 적힘)
+function valueOf(c) {
   const v = answers[c.key];
-  if (!v) return "";
+  if (!v || v === SKIP_LABEL) return c.skip ? ABSENT : "";
   return v === "그 외" ? `그 외 (${answers[c.key + "Etc"]})` : v;
 }
 
 function drawSummary() {
   const rows = [["이름", answers.name], ["지역", answers.region], ["구역", answers.zone],
-                ...CONFIG.checks.map(c => [c.label, pretty(c)])];
-  document.getElementById("summary").innerHTML = rows.map(([k, v]) =>
-    `<tr><th>${k}</th><td class="${v ? "" : "none"}">${v ? escapeHtml(v) : "미입력"}</td></tr>`).join("");
+                ...CONFIG.checks.map(c => [c.label, valueOf(c)])];
+  document.getElementById("summary").innerHTML = rows.map(([k, v]) => {
+    const empty = !v;
+    const dim = empty || v === ABSENT;
+    return `<tr><th>${k}</th><td class="${dim ? "none" : ""}">${empty ? "미입력" : escapeHtml(v)}</td></tr>`;
+  }).join("");
 }
 
 function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+  return String(s).replace(/[&<>"']/g, ch =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
 }
 
 function refreshSubmit() {
@@ -396,34 +484,51 @@ function refreshSubmit() {
   document.getElementById("nextBtn").disabled = !ok;
 }
 
-// 제출 번호: 화면을 연 순간 한 번만 만들어요. 인터넷이 끊겨서 다시 눌러도 같은 번호라서
-// 서버가 "이미 받은 보고"로 알아보고 두 번 저장하지 않아요.
+// 화면을 연 순간 한 번만 만드는 제출 번호.
+// 인터넷이 끊겨 다시 눌러도 번호가 같아서 서버가 두 번 저장하지 않아요.
 const submissionId = (window.crypto && crypto.randomUUID)
   ? crypto.randomUUID()
   : Date.now().toString(36) + Math.random().toString(36).slice(2);
 let submitting = false;
 
+// 모임(화요교육·월전도단·금전도단) 중 몇 군데 참석했는지로 완료 문구를 고릅니다
+function doneIndex() {
+  const went = ["tue", "mon", "fri"].filter(k => valueOf(conf(k)) !== ABSENT).length;
+  return went === 3 ? 0 : went >= 1 ? 1 : 2;
+}
+
 function showDone(preview, data) {
-  go(4);
-  const msg = document.getElementById("doneMsg");
+  go(DONE_PAGE);
+  document.getElementById("progress").hidden = true;
+  document.getElementById("nav").hidden = true;
   if (preview) {
-    msg.innerHTML = "지금은 미리보기라서 실제로 보내지는 않았어요.<br>실제로는 아래 내용이 전달돼요.";
+    document.getElementById("doneEmoji").textContent = "🧪";
+    document.getElementById("doneTitle").textContent = "미리보기";
+    document.getElementById("doneBody").innerHTML = "실제로 보내지는 않았어요.<br>아래 내용이 전달됩니다.";
     const pre = document.getElementById("result");
     pre.textContent = JSON.stringify(data, null, 2);
     pre.hidden = false;
     document.getElementById("btnAgain").hidden = false;
-  } else {
-    msg.innerHTML = T.doneMsg;
+    return;
+  }
+  const d = CONFIG.done[doneIndex()];
+  document.getElementById("doneEmoji").textContent = d.emoji;
+  document.getElementById("doneTitle").innerHTML   = d.title;
+  document.getElementById("doneBody").innerHTML    = d.body;
+  if (d.verse) {
+    document.getElementById("doneVerseText").textContent = "“" + VERSE.t + "”";
+    document.getElementById("doneVerseRef").textContent  = VERSE.r;
+    document.getElementById("doneVerse").hidden = false;
   }
 }
 
-// ----- 제출하기 -----
+// ===== 보내기 =====
 async function submit() {
-  if (submitting) return;   // 두 번 눌러도 한 번만 보내기
+  if (submitting) return;
   const data = { name: answers.name, region: answers.region, zone: answers.zone };
-  CONFIG.checks.forEach(c => data[c.key] = pretty(c));   // 안 고른 항목은 빈 값으로 가요
+  CONFIG.checks.forEach(c => data[c.key] = valueOf(c));
 
-  if (!CONFIG.submitUrl) return showDone(true, data);    // 미리보기 모드
+  if (!CONFIG.submitUrl) return showDone(true, data);   // 주소가 비어 있으면 미리보기
 
   submitting = true;
   const btn = document.getElementById("nextBtn");
@@ -441,8 +546,8 @@ async function submit() {
   } catch (err) {
     submitting = false;
     btn.disabled = false;
-    btn.textContent = "제출하기";
-    showError("제출하지 못했어요. 인터넷을 확인하고 다시 눌러 주세요. (같은 내용이 두 번 저장되지는 않아요)");
+    btn.textContent = "안부 전하기";
+    showError(CONFIG.errors.send);
   }
 }
 </script>
