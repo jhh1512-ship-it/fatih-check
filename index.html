@@ -92,6 +92,9 @@
   .item { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
   .item:first-child { margin-top: 4px; padding-top: 0; border-top: 0; }
   .itemHead { font-size: 16.5px; font-weight: 800; letter-spacing: -.5px; }
+  .itemHead .date { margin-left: 6px; font-size: 13.5px; font-weight: 600; color: var(--gray); letter-spacing: 0; }
+  .tag { margin-left: 6px; font-size: 11px; font-weight: 700; color: #8A6A1F; background: #F6EFD9;
+         border-radius: 20px; padding: 3px 8px; vertical-align: 2px; letter-spacing: 0; }
   .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
   .chip { padding: 14px 6px; border: 1px solid var(--line); border-radius: 12px; background: #fff;
           font-size: 15px; color: #5C6360; text-align: center; cursor: pointer; user-select: none; transition: .12s; }
@@ -256,10 +259,10 @@ const CONFIG = {
     brand:       "청장년지역 신앙관리",
     introTitle:  "이번 주도,<br><em>내 신앙에 안부</em>를<br>물어 주세요.",
     introLead:   "잘 지냈는지 한 번 들여다보는 시간입니다. 1분이면 충분해요.",
-    weekTip:     "한 주가 끝나는 토요일에 쓰시면 가장 정확해요",
+    weekTip:     "주일 밤 12시에 다음 주로 넘어가요",
     noticeTitle: "잠깐만 읽어주세요",
     notices: [
-      "예배 및 교육 전 편하신 시간에 작성해주시면 됩니다.",
+      "주일예배 드리고, 그날 밤 12시 전까지 작성해 주세요.",
       "적어주신 내용은 담당 구역장만 확인합니다.",
       "잘못 보내셨다면 다시 작성해 주세요. 이번 주 기록이 최신 내용으로 바뀝니다.",
     ],
@@ -285,16 +288,17 @@ const CONFIG = {
   // ---------- 점검 항목 ----------
   // required: true=항상 필수 / false=선택 / "lastWeek"=그 달 마지막 주에만 필수
   // skip: true 이면 '다음에 가겠습니다' 버튼이 생기고, 안 고르면 '미참석'으로 보내요
+  // dow: 무슨 요일 일정인지 (0=주일, 1=월 … 5=금). 화면에 날짜를 붙이는 데 써요
   checks: [
-    { key: "wed",   label: "삼일예배",      required: true,
+    { key: "wed",   label: "삼일예배",      required: true, dow: 3,
       options: ["1부 (12:00)", "2부 (19:30)", "3부 (20:00)", "그 외"], etc: ["인시센", "타지"] },
-    { key: "sun",   label: "주일예배",      required: true,
+    { key: "sun",   label: "주일예배",      required: true, dow: 0,
       options: ["1부 (12:00)", "2부 (15:00)", "3부 (19:30)", "그 외"], etc: ["인시센", "타지"] },
-    { key: "tue",   label: "화요신앙교육",  required: false, skip: true,
+    { key: "tue",   label: "화요신앙교육",  required: false, skip: true, dow: 2,
       options: ["1부 (09:00)", "2부 (17:00)", "3부 (19:50)", "그 외"], etc: ["줌", "인시센"] },
-    { key: "mon",   label: "월요일 전도단", required: false, skip: true,
+    { key: "mon",   label: "월요일 전도단", required: false, skip: true, dow: 1,
       options: ["1부 (10:50)", "2부 (17:00)", "3부 (19:50)"] },
-    { key: "fri",   label: "금요일 전도단", required: false, skip: true,
+    { key: "fri",   label: "금요일 전도단", required: false, skip: true, dow: 5,
       options: ["1부 (09:50)", "2부 (17:00)", "3부 (20:10)"] },
     { key: "dues",  label: "장년회비",      required: "lastWeek", options: ["납부완료", "미완료"] },
     { key: "tithe", label: "십일조",        required: "lastWeek", options: ["납부완료", "미완료"] },
@@ -305,7 +309,7 @@ const CONFIG = {
     { name: "예배",      keys: ["wed", "sun"],
       title: "예배는 어떠셨어요?",
       lead:  "다녀오신 시간을 골라주시면 됩니다." },
-    { name: "교육·모임", keys: ["tue", "mon", "fri"],
+    { name: "교육·모임", keys: ["mon", "tue", "fri"],
       title: "이번 주 모임은 어떠셨나요?",
       lead:  "못 가셨어도 괜찮습니다. 그럴 땐 '다음에 가겠습니다'를 눌러주시면 돼요." },
     { name: "헌금",      keys: ["dues", "tithe"],
@@ -337,6 +341,7 @@ const CONFIG = {
 
 const SKIP_LABEL = "다음에 가겠습니다";   // 화면에 보이는 글자
 const ABSENT = "미참석";                  // 시트에 적히는 글자
+const NA = "해당없음";                    // 달이 바뀌어 이번 주차에 그 요일이 없을 때
 const DAYS = "일월화수목금토";
 
 /* ---------- 여기부터는 화면을 움직이는 코드예요 ---------- */
@@ -348,23 +353,29 @@ const params = new URLSearchParams(location.search);
 const LAST_PAGE = 5;
 const DONE_PAGE = 6;
 
-// ===== 이번 주 (대한민국 달력: 일요일 시작, 달이 바뀌면 무조건 새로 시작) =====
-// 주차 = 달력에서 그 달의 몇 번째 줄인지. 서버도 똑같이 계산합니다.
-//  예) 11/29(일)~11/30(월) = 11월 5주차 (마지막 주)
-//      12/1(화)~12/5(토)  = 12월 1주차 (11월은 이미 끝)
+// ===== 이번 주 (월요일 ~ 주일, 주일 밤 12시에 다음 주로. 달이 바뀌면 무조건 새로 시작) =====
+// 주차 = 월요일 시작 달력에서 그 달의 몇 번째 줄인지. 서버도 똑같이 계산합니다.
+//  예) 11/23(월)~11/29(일) = 11월 5주차 / 11/30(월) = 11월 6주차 / 12/1(화)~12/6(일) = 12월 1주차
 function weekOf(d) {
   const y = d.getFullYear(), m = d.getMonth();
-  const firstDow = new Date(y, m, 1).getDay();
+  const offset = (new Date(y, m, 1).getDay() + 6) % 7;   // 1일이 월요일이면 0 … 일요일이면 6
+  const back = (d.getDay() + 6) % 7;                       // 이번 주 월요일에서 며칠 지났나
+  const mon = new Date(y, m, d.getDate() - back);
+  const sun = new Date(y, m, d.getDate() - back + 6);
   const lastDay = new Date(y, m + 1, 0);
-  const sun = new Date(y, m, d.getDate() - d.getDay());
-  const sat = new Date(y, m, d.getDate() - d.getDay() + 6);
-  const start = sun.getMonth() === m ? sun : new Date(y, m, 1);   // 이번 달 안으로 자르기
-  const end   = sat.getMonth() === m ? sat : lastDay;
-  return { start, end, year: y, month: m, no: Math.ceil((d.getDate() + firstDow) / 7),
-           isLast: end.getTime() === lastDay.getTime() };
+  const start = mon.getMonth() === m ? mon : new Date(y, m, 1);   // 이번 달 안으로 자르기
+  const end   = sun.getMonth() === m ? sun : lastDay;
+  return { mon, start, end, year: y, month: m, no: Math.ceil((d.getDate() + offset) / 7) };
 }
-// 이번 달의 마지막 날이 들어 있는 줄 = 마지막 주
-function isLastWeekOfMonth(d) { return weekOf(d || new Date()).isLast; }
+// 회비·십일조 필수 주 = 그 달 마지막 주일이 든 주(월~주일) + 그 뒤 남은 날
+//  예) 11월: 마지막 주일 11/29 → 11/23(월) ~ 11/30(월)
+function isLastWeekOfMonth(d) {
+  d = d || new Date();
+  const y = d.getFullYear(), m = d.getMonth();
+  const lastDay = new Date(y, m + 1, 0);
+  const lastSunday = lastDay.getDate() - lastDay.getDay();   // 그 달 마지막 주일의 날짜
+  return d.getDate() >= lastSunday - 6;
+}
 const WEEK = weekOf(new Date());
 const THIS_MONTH = WEEK.month;   // 0 = 1월
 const WEEK_KEY = `${WEEK.year}-${WEEK.month + 1}-${WEEK.no}`;
@@ -375,15 +386,35 @@ const FEE_WEEK = params.get("fee") === "1" ? true
 const VERSE = CONFIG.verses[THIS_MONTH] || CONFIG.verses[0];
 
 const conf = key => CONFIG.checks.find(c => c.key === key);
-const isRequired = c => c.required === true || (c.required === "lastWeek" && FEE_WEEK);
 const md = d => `${d.getMonth() + 1}/${d.getDate()}`;
+const NOW = new Date();
+const TODAY = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
+
+// 이 항목의 이번 주 날짜 (예: 삼일예배 → 이번 주 수요일)
+function itemDate(c) {
+  return new Date(WEEK.mon.getFullYear(), WEEK.mon.getMonth(), WEEK.mon.getDate() + (c.dow + 6) % 7);
+}
+// 그 날짜가 이번 달 안에 있나? (달이 바뀌어 잘린 주에는 없는 요일이 생겨요)
+function inMonth(c) {
+  if (c.dow === undefined) return true;
+  const d = itemDate(c);
+  return d.getFullYear() === WEEK.year && d.getMonth() === WEEK.month;
+}
+function isRequired(c) {
+  if (!inMonth(c)) return false;
+  return c.required === true || (c.required === "lastWeek" && FEE_WEEK);
+}
 
 // ===== 시작 화면 채우기 =====
 $("brandText").textContent = T.brand;
 const dd = d => `${md(d)}(${DAYS[d.getDay()]})`;
-// 달이 토요일 전에 끝나는 주에는 "언제까지 써야 하는지"를 알려줘요
-const weekTip = WEEK.end.getDay() === 6 ? T.weekTip
-  : `${dd(WEEK.end)}이 지나면 ${THIS_MONTH === 11 ? 1 : THIS_MONTH + 2}월로 넘어가요. 그 전에 써주세요`;
+// 요일 글자에 받침이 있으면 '은/이', 없으면 '는/가' (월·목·금·일 → 은/이, 화·수·토 → 는/가)
+const hasBatchim = d => "월목금일".indexOf(DAYS[d.getDay()]) !== -1;
+const eun = d => dd(d) + (hasBatchim(d) ? "은" : "는");
+const iga = d => dd(d) + (hasBatchim(d) ? "이" : "가");
+// 달이 주일 전에 끝나는 주에는 "언제까지 써야 하는지"를 날짜로 알려줘요
+const weekTip = WEEK.end.getDay() === 0 ? T.weekTip
+  : `${iga(WEEK.end)} 지나면 ${THIS_MONTH === 11 ? 1 : THIS_MONTH + 2}월로 넘어가요. 그 전에 써주세요`;
 $("weekBadge").innerHTML = `📅 ${THIS_MONTH + 1}월 ${WEEK.no}주차 · ${dd(WEEK.start)} ~ ${dd(WEEK.end)}` +
                            `<small id="weekTip">${weekTip}</small>`;
 $("introTitle").innerHTML  = T.introTitle;
@@ -455,11 +486,21 @@ function chipGroup(key, options, extraClass) {
 function itemHtml(c) {
   const must = isRequired(c);
   const badge = must ? `<span class="req">*</span>` : `<span class="opt">선택</span>`;
-  const hint = (c.required === "lastWeek" && must)
-    ? `<p class="hint">이번 주는 ${THIS_MONTH + 1}월 마지막 주라 꼭 알려주셔야 해요.</p>` : "";
+  let date = "", tag = "", hint = "";
+  if (c.dow !== undefined) {
+    const d = itemDate(c);
+    date = `<span class="date">· ${dd(d)}</span>`;
+    if (!inMonth(c)) {
+      const which = d < WEEK.start ? "지난달" : "다음 달";
+      hint = `<p class="hint">${eun(d)} ${which}이라 이번 주차에는 없어요. 건너뛰셔도 됩니다.</p>`;
+    } else if (d > TODAY) {
+      tag = `<span class="tag">예정</span>`;
+    }
+  }
+  if (c.required === "lastWeek" && must) hint = `<p class="hint">이번 주는 ${THIS_MONTH + 1}월 마지막 주라 꼭 알려주셔야 해요.</p>`;
   const opts = c.skip ? c.options.concat([SKIP_LABEL]) : c.options;
   return `<div class="item">
-    <div class="itemHead">${c.label}${badge}</div>${hint}
+    <div class="itemHead">${c.label}${date}${badge}${tag}</div>${hint}
     ${chipGroup(c.key, opts, true)}
     ${c.etc ? `<div class="etc" id="etc-${c.key}" hidden><small>어떤 경우인가요?</small>${chipGroup(c.key + "Etc", c.etc)}</div>` : ""}
   </div>`;
@@ -603,7 +644,8 @@ function next() {
 // ===== 보낼 값 만들기 =====
 function valueOf(c) {
   const v = answers[c.key];
-  if (!v || v === SKIP_LABEL) return c.skip ? ABSENT : "";
+  if (!v) return !inMonth(c) ? NA : c.skip ? ABSENT : "";   // 이번 주차에 없는 요일이면 '해당없음'
+  if (v === SKIP_LABEL) return ABSENT;
   return v === "그 외" ? `그 외 (${answers[c.key + "Etc"]})` : v;
 }
 
@@ -611,7 +653,7 @@ function drawSummary(table) {
   const rows = [["이름", answers.name], ["지역", answers.region], ["구역", answers.zone],
                 ...CONFIG.checks.map(c => [c.label, valueOf(c)])];
   table.innerHTML = rows.map(([k, v]) => {
-    const dim = !v || v === ABSENT;
+    const dim = !v || v === ABSENT || v === NA;
     return `<tr><th>${k}</th><td class="${dim ? "none" : ""}">${v ? escapeHtml(v) : "미입력"}</td></tr>`;
   }).join("");
 }
@@ -629,10 +671,11 @@ const submissionId = (window.crypto && crypto.randomUUID)
   : Date.now().toString(36) + Math.random().toString(36).slice(2);
 let submitting = false;
 
-// 모임 3곳 중 몇 군데 참석했는지로 완료 문구를 고릅니다
+// 이번 주차에 있는 모임 중 몇 군데 참석했는지로 완료 문구를 고릅니다
 function doneIndex() {
-  const went = ["tue", "mon", "fri"].filter(k => valueOf(conf(k)) !== ABSENT).length;
-  return went === 3 ? 0 : went >= 1 ? 1 : 2;
+  const meet = ["mon", "tue", "fri"].map(conf).filter(inMonth);
+  const went = meet.filter(c => valueOf(c) !== ABSENT).length;
+  return went === meet.length ? 0 : went >= 1 ? 1 : 2;
 }
 
 function showDone(out, data) {
